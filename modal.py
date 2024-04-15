@@ -1,6 +1,7 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+
 import torch
 from tokenizers.implementations import ByteLevelBPETokenizer
 from tokenizers.processors import BertProcessing
@@ -21,7 +22,7 @@ def main():
     if not os.path.exists('raw_model'):
         os.makedirs('raw_model')
 
-    dados_treino = 'C:\\Users\\caiqu\\OneDrive\\Documentos\\IA\\crepusculoDosIdolos.txt'
+    dados_treino = 'crepusculoDosIdolos.txt'
 
     os.path.join(os.path.abspath('.'), 'raw_model')
 
@@ -77,7 +78,7 @@ def main():
         tokenizer=tokenizer, mlm=True, mlm_probability=0.1
     )
 
-    output_dir = os.path.abspath('C:\\Users\\caiqu\\OneDrive\\Documentos\\IA\\raw_model')
+    output_dir = os.path.abspath('raw_model')
 
     training_args = TrainingArguments(
         output_dir=output_dir,
