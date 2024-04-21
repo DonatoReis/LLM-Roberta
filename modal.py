@@ -41,6 +41,15 @@ ADAM_EPSILON = 8.46211496713214e-07
 NUM_TRAIN_EPOCHS = 2
 PER_DEVICE_TRAIN_BATCH_SIZE = 16
 
+# Definindo as cores ASCII como variáveis
+COLORS = {
+    "blue": "\033[94m",
+    "red": "\033[91m",
+    "purple": "\033[95m",
+    "cyan": "\033[96m",
+    "end": "\033[0m"
+}
+
 # Função para verificar se uma GPU está disponível e, se não, usar a CPU (Usamos a GPU se estiver disponível para acelerar o treinamento, caso contrário, usamos a CPU.)
 def set_device():
     """
@@ -115,7 +124,7 @@ def main():
     # Função para exibir uma animação de carregamento durante o treinamento
     def spin():
         print()
-        frames = ["\033[94m⣾\033[0m", "\033[94m⣽\033[0m", "\033[94m⣻\033[0m", "\033[94m⢿\033[0m", "\033[94m⡿\033[0m", "\033[94m⣟\033[0m", "\033[94m⣯\033[0m", "\033[94m⣷\033[0m"]
+        frames = [f"{COLORS['blue']}{frame}{COLORS['end']}" for frame in ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"]]
         messages = ["Preparando os pacotes", "Aperfeiçoando melhorias", "Codificando tokens"]
         start_time = time.time()
         frame_index = 0
@@ -131,7 +140,7 @@ def main():
                 msg_index = (msg_index + 1) % len(messages)  # Atualiza o índice da mensagem
                 if msg_index == 0:  # Se todas as mensagens foram exibidas, encerra o ciclo
                     print('\r' + ' ' * 50, end='')  # Limpa a linha
-                    print('\r\033[94m✔\033[0m Refinamento concluído.')  # Imprime o símbolo de verificação e a mensagem final
+                    print(f'\r{COLORS["blue"]}✔{COLORS["end"]} Refinamento concluído.')  # Imprime o símbolo de verificação e a mensagem final
                     break
 
     # Cria uma thread para o spinner
@@ -145,7 +154,7 @@ def main():
     spinner.join()
 
     # Pergunte ao usuário se eles querem treinar o modelo ou entrar no chat
-    mode = input("\n Digite '\033[94m treinar \033[0m' para iniciar o treinamento do modelo ou '\033[91m chat \033[0m' para conversar com a IA: ")
+    mode = input(f"\n Digite '{COLORS['blue']}treinar{COLORS['end']}' para iniciar o treinamento do modelo ou '{COLORS['red']}chat{COLORS['end']}' para conversar com a IA: ")
     print()
 
     device = set_device()
@@ -248,7 +257,7 @@ def main():
         )
 
         # Pergunte ao usuário se eles gostariam de usar o Optuna para otimização de hiperparâmetros ou utilizar os parametros personalizados.
-        optuna_mode = input("\n➤ Você gostaria de usar as configurações padrão ou Optuna para treinar? (\033[94mpadrao\033[0m/\033[91moptuna\033[0m): ")
+        optuna_mode = input(f"\n➤ Você gostaria de usar as configurações padrão ou Optuna para treinar? ({COLORS['blue']}padrao{COLORS['end']}/{COLORS['red']}optuna{COLORS['end']}): ")
         print()
         # Defina um nome para o seu estudo e o caminho do banco de dados
         study_name = "tess"
@@ -312,26 +321,25 @@ def main():
 # Função Convesar
 def chat(model, tokenizer, device):
     # Solicita os parâmetros ao usuário
-    do_sample = input("\nEscolha uma amostra (True/False): ") == "True"
-    temperature = 0.7  # valor padrão
+    do_sample = input("\nEscolha uma amostra (True/False): ") == "True" # Se definido como True, o modelo irá amostrar as palavras de saída em vez de usar a palavra com a maior probabilidade. Isso pode levar a resultados mais diversos, mas também pode produzir sequências menos coerentes.
+    temperature = 1.0  # valor padrão para quando do_sample é False
     if do_sample:
-        temp_input = input("Temperature (e.g. 0.5, press Enter for default 0.7): ")
+        temp_input = input("\nTemperature (e.g. 0.5, press Enter for default 0.7): ") # temperature: Este parâmetro controla a “aleatoriedade” das previsões do modelo. Um valor de temperatura mais alto (por exemplo, 1.0) torna as previsões do modelo mais aleatórias, enquanto um valor de temperatura mais baixo (por exemplo, 0.7, como você está usando) torna as previsões do modelo mais determinísticas.
         if temp_input != "":
             temperature = float(temp_input)
+        else:
+            temperature = 0.7  # valor padrão para quando do_sample é True
 
-        # Loop infinito
-        while True:
-            question = input("\nVocê: ") # Solicita uma pergunta ao usuário
-            if question.lower() == 'sair': # Se a pergunta for "sair", sai do loop
-                break
-            input_ids = tokenizer.encode(question, return_tensors='pt') # Codifica a pergunta e adiciona os tokens necessários
-            input_ids = input_ids.to(device) # Move os input_ids para a mesma GPU onde o modelo está
-            if do_sample:
-                output = model.generate(input_ids, max_length=50, num_return_sequences=1, do_sample=do_sample ,temperature=temperature) # Gera uma resposta para a pergunta
-            else:
-                output = model.generate(input_ids, max_length=50, num_return_sequences=1, do_sample=do_sample) # Gera uma resposta para a pergunta
-            response = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True) # Decodifica a resposta
-            print("\nIA: ", response) # Imprime a resposta
+    # Loop infinito
+    while True:
+        question = input("\nVocê: ") # Solicita uma pergunta ao usuário
+        if question.lower() == 'sair': # Se a pergunta for "sair", sai do loop
+            break
+        input_ids = tokenizer.encode(question, return_tensors='pt') # Codifica a pergunta e adiciona os tokens necessários
+        input_ids = input_ids.to(device) # Move os input_ids para a mesma GPU onde o modelo está
+        output = model.generate(input_ids, max_length=50, num_return_sequences=1, do_sample=do_sample ,temperature=temperature) # Gera uma resposta para a pergunta
+        response = tokenizer.decode(output[:, input_ids.shape[-1]:][0], skip_special_tokens=True) # Decodifica a resposta
+        print("\nIA: ", response) # Imprime a resposta
 
 if __name__ == '__main__':
     main()
