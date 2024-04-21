@@ -9,6 +9,10 @@ O script carrega o dataset de texto, tokeniza o dataset e prepara um DataCollato
 
 Finalmente, o script treina o modelo e salva o modelo treinado. Ele também oferece a opção de usar Optuna para otimização de hiperparâmetros.
 
+## Objetivo
+
+O objetivo principal do script é treinar o modelo para prever a próxima palavra em uma sequência de texto.
+
 ## Requisitos
 - Python 3.12.3
 - PyTorch
