@@ -1,4 +1,7 @@
-transformers==4.39.3
-tokenizers==0.15.2
+optuna==3.6.1
 torch==2.2.2+cu121
+scikit-learn==1.4.2
+numpy==1.26.3
 datasets==2.18.0
+tokenizers==0.15.2
+transformers==4.39.3
